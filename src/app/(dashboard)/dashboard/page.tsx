@@ -2,15 +2,36 @@
 
 import Link from "next/link";
 import Header from "@/components/header";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ServiceCard } from "@/components/dashboard/ServiceCard";
 import { EmptyState } from "@/components/dashboard/EmptyState";
-import { mockServices } from "@/data/mockServices";
+import { type Service } from "@/data/mockServices";
 import { ROUTES } from "@/config/routes";
+import { useEffect, useState } from "react";
+import api from "@vpsphere/api-client";
 
 export default function DashboardPage() {
-    const hasServices = mockServices.length > 0;
+    const [services, setServices] = useState<Service[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await api.projects.list();
+                // Ensure data is an array
+                setServices(Array.isArray(data) ? data : (data.projects || []));
+            } catch (error) {
+                console.error("Failed to fetch projects:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjects();
+    }, []);
+
+    const hasServices = services.length > 0;
 
     return (
         <div className="flex flex-col h-full bg-vpsBackground dark:bg-background-dark">
@@ -65,10 +86,14 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {hasServices ? (
+                    {loading ? (
+                        <div className="flex justify-center p-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : hasServices ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {mockServices.map((service) => (
-                                <ServiceCard key={service.id} service={service} />
+                            {services.map((service) => (
+                                <ServiceCard key={service.id || Math.random()} service={service as Service} />
                             ))}
                         </div>
                     ) : (
