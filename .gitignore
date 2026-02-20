@@ -34,3 +34,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# lint output
+lint_output*.txt
+lint_results.txt
+
+# misc
+New folder/
+
